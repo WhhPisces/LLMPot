@@ -1,0 +1,85 @@
+name: "工控网络蜜罐系统 - Industrial Control Network Honeypot"
+description: "基于LLM的智能工控网络蜜罐系统，支持多种工控协议和智能攻击检测"
+bind_address: "0.0.0.0"
+
+protocols:
+  - name: "modbus_tcp"
+    port: 502
+    enabled: true
+    llm_enabled: true
+    response_delay: 0.1
+    max_connections: 100
+    protocol_specific:
+      slave_id: 1
+      coils: 100
+      discrete_inputs: 100
+      holding_registers: 100
+      input_registers: 100
+      device_info:
+        vendor: "Schneider Electric"
+        product_code: "TM221CE16R"
+        vendor_url: "https://www.schneider-electric.com"
+        product_name: "Modicon M221 Logic Controller"
+        model_name: "TM221CE16R"
+        revision: "1.0.0.0"
+
+  - name: "s7comm"
+    port: 102
+    enabled: true
+    llm_enabled: true
+    response_delay: 0.1
+    max_connections: 100
+    protocol_specific:
+      rack: 0
+      slot: 2
+      cpu_type: "CPU 1214C"
+      system_name: "SIMATIC"
+      module_name: "CPU 1214C AC/DC/RLY"
+      plant_identification: "Factory_PLC_001"
+
+  - name: "dnp3"
+    port: 20000
+    enabled: false
+    llm_enabled: true
+    response_delay: 0.1
+    max_connections: 100
+    protocol_specific:
+      link_address: 10
+      master_address: 1
+      binary_inputs: 100
+      analog_inputs: 50
+      binary_outputs: 50
+      analog_outputs: 25
+
+llm:
+  model_type: "byt5-small"
+  model_path: "/var/lib/honeypot/models"
+  max_tokens: 512
+  temperature: 0.7
+  use_lora: true
+  device: "cpu"
+  batch_size: 1
+
+security:
+  enable_rate_limiting: true
+  rate_limit_requests: 100
+  rate_limit_window: 60
+  block_suspicious_ips: true
+  max_failed_attempts: 10
+  blacklist_duration: 3600
+  enable_geo_blocking: false
+  allowed_countries: []
+
+monitoring:
+  enable_logging: true
+  log_level: "INFO"
+  log_file: "/var/log/honeypot/honeypot.log"
+  enable_metrics: true
+  metrics_port: 9090
+  enable_alerts: true
+  alert_threshold: 50
+
+database:
+  mongodb_url: "mongodb://root:root@127.0.0.1:27017/honeypot?authSource=admin"
+  database_name: "honeypot"
+  collection_prefix: "hp_"
